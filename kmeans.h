@@ -9,9 +9,9 @@
 namespace kmeans {
 
 struct Point {
-    int _x; int _y;
-    int group = 0;
-    Point(int x, int y) { _x = x; _y = y; };
+    float _x, _y;
+    int _group;
+    Point(float x, float y, int group = 0) { _x = x; _y = y; _group = group; };
     inline float distance(Point& another) {
         return (std::sqrtf(_x - another._x) * (_x - another._x) + (_y - another._y) * (_y - another._y));
     };
@@ -27,7 +27,10 @@ public:
     void initCentersTraditional();
     void initCentersPlusPlus();
     void update(); // Loop to end
-    void saveResult();
+    void savePoints();
+
+    int pointNum();
+    friend std::ostream& operator<<(std::ostream& os, const Kmeans& kms);
 
 private:
     int k;
