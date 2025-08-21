@@ -2,6 +2,7 @@
 #define MY_KMEANS_H_
 
 #include <vector>
+#include <queue>
 #include <map>
 #include <cmath>
 #include <string>
@@ -11,9 +12,12 @@ namespace kmeans {
 struct Point {
     float _x, _y;
     int _group;
-    Point(float x, float y, int group = 0) { _x = x; _y = y; _group = group; };
+
+    Point(float x, float y, int group = -1) { _x = x; _y = y; _group = group; };
     inline float distance(Point& another) {
-        return (std::sqrtf(_x - another._x) * (_x - another._x) + (_y - another._y) * (_y - another._y));
+        return std::sqrtf(
+            (_x - another._x) * (_x - another._x) + (_y - another._y) * (_y - another._y)
+        );
     };
 };
 
@@ -26,7 +30,8 @@ public:
     void initPoints(std::vector<Point> pointVec);
     void initCentersTraditional();
     void initCentersPlusPlus();
-    void update(); // Loop to end
+    void cluster();
+    void update(int maxTry); // Loop to end
     void savePoints();
 
     int pointNum();
@@ -34,8 +39,9 @@ public:
 
 private:
     int k;
+    float loss = 0;
     std::vector<Point> points;
-    std::map<int,Point> centers; // gid -> Point
+    std::vector<Point> centers; // gid -> Point
 };
 // End Class Definition
 

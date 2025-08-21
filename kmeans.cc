@@ -1,5 +1,7 @@
 #include "kmeans.h"
 
+#include <map>
+#include <cmath>
 #include <random>
 #include <iostream>
 #include <fstream>
@@ -11,6 +13,7 @@ namespace kmeans {
     // Random init points
     // MapSize: 100, 100
     void Kmeans::initPoints(int pointNum) {
+        if (pointNum < k) pointNum = k;
         std::mt19937 rng;
         rng.seed(std::random_device{}());
         std::uniform_real_distribution<float> udist(0, 100);
@@ -22,6 +25,9 @@ namespace kmeans {
     }
     // Random init points
     void Kmeans::initPoints(std::vector<Point> pointVec) {
+        if (pointVec.size() < k) 
+            std::cerr << "Length of vector (" << pointVec.size() << ") "
+                << "should greater than K " << "(" << k << ")...";
         for (auto it=pointVec.begin(); it<pointVec.end(); it++)
             points.push_back(*it);
     }
@@ -44,6 +50,81 @@ namespace kmeans {
         saveFile.close();
     }
 
+    void Kmeans::initCentersTraditional() {
+        for (int i=0; i<k; i++) {
+            points[i]._group = i;
+            centers.push_back(points[i]);
+        }
+    }
+
+    void Kmeans::initCentersPlusPlus() {
+        std::mt19937 rng;
+        rng.seed(std::random_device{}());
+
+        int psize = pointNum();
+        // Select first center
+        int firstCenterIndex = rng() % psize;
+        points[firstCenterIndex]._group = 0;
+        centers.push_back(points[firstCenterIndex]);
+
+        // Select left centers
+        std::vector<float> distances(psize, 0.0);
+        while (centers.size() < k) {
+            // Calculate distance
+            for (int i=0; i<psize; i++)
+                distances[i] = std::pow(centers[centers.size()-1].distance(points[i]), 2);
+
+            std::discrete_distribution<int> dist(distances.begin(), distances.end());
+            int indice = dist(rng);
+            centers.push_back(points[indice]);
+            points[indice]._group = centers.size()-1;
+        }
+    }
+
+    void Kmeans::cluster() {
+        std::vector<Point> clusters(k, Point(0,0,0));
+
+        for (auto it=points.begin(); it<points.end(); it++) {
+            float nearestDistance = MAXFLOAT;
+            int nearestCenterID = 0;
+            for (int i=0; i<centers.size(); i++) {
+                float distance = (*it).distance(centers[i]);
+                if (distance < nearestDistance) {
+                    nearestCenterID = i;
+                    nearestDistance = distance;
+                }
+                // std::cout << nearestDistance << "," << distance << std::endl;
+            }
+            (*it)._group = nearestCenterID;
+            loss += nearestDistance * nearestDistance;
+
+            clusters[nearestCenterID]._x += (*it)._x;
+            clusters[nearestCenterID]._y += (*it)._y;
+            clusters[nearestCenterID]._group++;
+        }
+
+        // Calculate new centers
+        for (int i=0; i<k; i++) {
+            // std::cout << "In cluster point num: " << clusters[i]._group << std::endl;
+            centers[i]._x = clusters[i]._x / clusters[i]._group;
+            centers[i]._y = clusters[i]._y / clusters[i]._group;
+        }
+
+    }
+
+    void Kmeans::update(int maxTry) {
+        loss = 0; // Loss init to zero
+        float prevLoss = -1;
+
+        int count = 0;
+        while (loss != prevLoss) {
+            cluster();
+            std::cout << "Loop count: " << count << std::endl;
+            count++;
+            if (count > maxTry) break;
+        }
+    }
+    
     std::ostream& operator<<(std::ostream& os, const Kmeans& kms) {
         const auto& pts = kms.points;
         if (pts.size() == 0) return os << "No points in Kmeans";

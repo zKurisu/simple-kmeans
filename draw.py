@@ -19,10 +19,16 @@ if __name__ == '__main__':
     # Plot
     for i, group in enumerate(groups):
         subset = df[df['gid'] == group]
+        center_x = subset['x'].mean()
+        center_y = subset['y'].mean()
+        color = random_color()
         plt.scatter(subset['x'], subset['y'],
                     s=10,
                     alpha=0.7,
-                    color=random_color())
+                    color=color)
+        plt.scatter(center_x, center_y,
+                    s=50,
+                    color=color)
 
     plt.title("Points")
     plt.xlabel("X axis")
