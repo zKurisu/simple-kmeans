@@ -16,7 +16,7 @@ namespace kmeans {
         if (pointNum < k) pointNum = k;
         std::mt19937 rng;
         rng.seed(std::random_device{}());
-        std::uniform_real_distribution<float> udist(0, 100);
+        std::uniform_real_distribution<float> udist(0, 10000);
         for (int i=0; i<pointNum; i++) {
             points.push_back(Point(
                 udist(rng), udist(rng)
@@ -46,6 +46,17 @@ namespace kmeans {
                 saveFile << points[i]._x << ","
                     << points[i]._y << ","
                     << points[i]._group << std::endl;
+        }
+        saveFile.close();
+    }
+
+    void Kmeans::saveLoss() {
+        std::ofstream saveFile("loss.csv", std::ios::out);
+        if (saveFile.is_open()) {
+            saveFile << "epoch,loss" << std::endl;
+            for (int i=0; i<lossTrend.size(); i++)
+                saveFile << i << ","
+                    << lossTrend[i] << std::endl;
         }
         saveFile.close();
     }
@@ -103,25 +114,32 @@ namespace kmeans {
             clusters[nearestCenterID]._group++;
         }
 
+        lossTrend.push_back(loss);
+
         // Calculate new centers
         for (int i=0; i<k; i++) {
             // std::cout << "In cluster point num: " << clusters[i]._group << std::endl;
             centers[i]._x = clusters[i]._x / clusters[i]._group;
             centers[i]._y = clusters[i]._y / clusters[i]._group;
         }
-
     }
 
-    void Kmeans::update(int maxTry) {
-        loss = 0; // Loss init to zero
+    void Kmeans::update(int maxTry, int wait) {
         float prevLoss = -1;
 
-        int count = 0;
-        while (loss != prevLoss) {
+        int tryCount = 0;
+        int waitCount = 0;
+        while (waitCount < wait) {
+            prevLoss = loss;
+
+            loss = 0; // Loss init to zero
             cluster();
-            std::cout << "Loop count: " << count << std::endl;
-            count++;
-            if (count > maxTry) break;
+            std::cout << "Loop count: " << tryCount << std::endl;
+            std::cout << "Loss: " << loss << std::endl;
+
+            tryCount++;
+            if (loss == prevLoss) waitCount++;
+            if (tryCount > maxTry) break;
         }
     }
     

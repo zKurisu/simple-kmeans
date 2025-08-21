@@ -31,8 +31,9 @@ public:
     void initCentersTraditional();
     void initCentersPlusPlus();
     void cluster();
-    void update(int maxTry); // Loop to end
+    void update(int maxTry, int wait); // Loop to end
     void savePoints();
+    void saveLoss();
 
     int pointNum();
     friend std::ostream& operator<<(std::ostream& os, const Kmeans& kms);
@@ -40,6 +41,7 @@ public:
 private:
     int k;
     float loss = 0;
+    std::vector<float> lossTrend;
     std::vector<Point> points;
     std::vector<Point> centers; // gid -> Point
 };

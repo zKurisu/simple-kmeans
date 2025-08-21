@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 def random_color():
     return (random.random(), random.random(), random.random())
 
-if __name__ == '__main__':
+def draw_points():
     # Read csv content
     csv_file = "points.csv"
     df = pd.read_csv(csv_file)
@@ -34,3 +34,19 @@ if __name__ == '__main__':
     plt.xlabel("X axis")
     plt.ylabel("Y axis")
     plt.show()
+
+def draw_loss():
+    loss_file = "loss.csv"
+    loss_trend = pd.read_csv(loss_file)
+    x = loss_trend['epoch']
+    y = loss_trend['loss']
+
+    plt.plot(x, y)
+    plt.title("loss trend")
+    plt.xlabel("epoch")
+    plt.ylabel("loss")
+    plt.show()
+
+if __name__ == '__main__':
+    draw_loss()
+    draw_points()
