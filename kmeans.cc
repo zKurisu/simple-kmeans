@@ -62,10 +62,28 @@ namespace kmeans {
     }
 
     void Kmeans::initCentersTraditional() {
-        for (int i=0; i<k; i++) {
-            points[i]._group = i;
-            centers.push_back(points[i]);
+        std::mt19937 rng;
+        rng.seed(std::random_device{}());
+        int psize = pointNum();
+        std::map<int, int> selected;
+        int kCount = 0;
+
+        while (kCount < k) {
+            int indice = rng() % psize;
+            auto it = selected.find(indice);
+            if (it == selected.end()) {
+                selected[indice] = 1;
+
+                points[indice]._group = kCount;
+                centers.push_back(points[indice]);
+                kCount++;
+            }
         }
+
+        // for (int i=0; i<k; i++) {
+        //     points[i]._group = i;
+        //     centers.push_back(points[i]);
+        // }
     }
 
     void Kmeans::initCentersPlusPlus() {
